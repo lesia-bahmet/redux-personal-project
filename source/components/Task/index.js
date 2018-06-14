@@ -26,7 +26,6 @@ export default class Task extends PureComponent {
     }
 
     componentDidMount () {
-        //TODO: refactor
         document.addEventListener("keydown", this._handleKeyPress, false);
     }
 
@@ -35,6 +34,10 @@ export default class Task extends PureComponent {
             this._focusMessageInput();
         }
         this.props.sortTasks();
+    }
+
+    componentWillUnmount () {
+        document.removeEventListener("keydown", this._handleKeyPress);
     }
 
     _focusMessageInput () {
@@ -75,12 +78,6 @@ export default class Task extends PureComponent {
     };
 
     _setFavorite = () => {
-        // if (this.props.favorite) {
-        //     this.props.unsetFavorite(this.props.id);
-        // } else {
-        //     this.props.setFavorite(this.props.id);
-        // }
-
         const data = this._collectData();
 
         data.favorite = !this.props.favorite;
@@ -89,11 +86,6 @@ export default class Task extends PureComponent {
     };
 
     _setCompleted = () => {
-        // if (this.props.completed) {
-        //     this.props.setUncompleted(this.props.id);
-        // } else {
-        //     this.props.setCompleted(this.props.id);
-        // }
         const data = this._collectData();
 
         data.completed = !this.props.completed;
@@ -115,7 +107,7 @@ export default class Task extends PureComponent {
     };
 
     render () {
-        const { message, completed } = this.props;
+        const { completed } = this.props;
 
         const styles = cx(Styles.task, {
             [Styles.completed]: completed,
@@ -125,8 +117,8 @@ export default class Task extends PureComponent {
             <li className = { styles }>
                 <div className = { Styles.content }>
                     <Checkbox
-                        checked = { this.props.completed }
                         inlineBlock
+                        checked = { this.props.completed }
                         className = { Styles.complete }
                         color1 = '#3B8EF3'
                         color2 = '#FFF'
@@ -135,38 +127,37 @@ export default class Task extends PureComponent {
                     <input
                         autoFocus
                         disabled = { !this.state.isEdited }
-                        onBlur = { this._skipEdit }
-                        onChange = { this._handleChange }
-                        onKeyPress = { this._handleKeyPress }
                         ref = { this.messageInput }
                         type = 'text'
                         value = { this.state.message }
-                        // value = { message }
+                        onBlur = { this._skipEdit }
+                        onChange = { this._handleChange }
+                        onKeyPress = { this._handleKeyPress }
                     />
                 </div>
                 <div className = { Styles.actions }>
                     <Star
+                        inlineBlock
                         checked = { this.props.favorite }
                         className = { Styles.setPriority }
                         color1 = '#3B8EF3'
                         color2 = '#000'
-                        inlineBlock
                         onClick = { this._setFavorite }
                     />
                     <Edit
-                        onClick = { this._setEditState }
                         inlineBlock
                         checked = { false }
                         className = { Styles.edit }
                         color1 = '#3B8EF3'
                         color2 = '#000'
+                        onClick = { this._setEditState }
                     />
                     <Remove
-                        onClick = { this._removeTask }
                         inlineBlock
                         className = { Styles.remove }
                         color1 = '#3B8EF3'
                         color2 = '#000'
+                        onClick = { this._removeTask }
                     />
                 </div>
             </li>
