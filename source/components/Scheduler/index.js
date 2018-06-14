@@ -7,26 +7,33 @@ import { bindActionCreators } from 'redux';
 import Styles from './styles.m.css';
 import Checkbox from 'theme/assets/Checkbox';
 import { taskActions } from '../../bus/task/actions';
+import { sagaTaskActions } from './../../bus/task/saga/actions';
 
 // Components
 import Task from 'components/Task';
+import Spinner from '../Spinner';
 
 const mapStateToProps = (state) => ({
-    tasks: state.tasks,
+    tasks:        state.tasks,
+    isRequesting: state.ui.get('isRequesting'),
 });
 
 function mapDispatchToProps (dispatch) {
-    return { taskActions: bindActionCreators(taskActions, dispatch) };
+    return {
+        taskActions:     bindActionCreators(taskActions, dispatch),
+        sagaTaskActions: bindActionCreators(sagaTaskActions, dispatch),
+    };
 }
 
 @connect(mapStateToProps, mapDispatchToProps)
 export default class Scheduler extends Component {
-    constructor (props) {
-        super(props);
-        this.state = {
-            message: '',
-            search:  '',
-        };
+    state = {
+        message: '',
+        search:  '',
+    };
+
+    componentDidMount () {
+        this.props.sagaTaskActions.fetchTasksRequest();
     }
 
     _changeTextHandler = (event) => {
@@ -38,6 +45,7 @@ export default class Scheduler extends Component {
 
         this.setState({ message });
     };
+
     _addTaskHandler = (event) => {
         event.preventDefault();
 
@@ -45,24 +53,24 @@ export default class Scheduler extends Component {
             return;
         }
 
-        this.props.taskActions.addTask({
-            id:        Date.now(),
-            message:   this.state.message,
-            completed: false,
-            favorite:  false,
-        });
+        this.props.sagaTaskActions.addTaskRequest(this.state.message);
 
         this.setState({ message: '' });
     };
+
     _setAllTasksCompleted = () => {
-        this.props.taskActions.setAllTasksCompleted();
+        const tasks = this.props.tasks.map((task) => task.set('completed', true));
+
+        this.props.sagaTaskActions.editTasksRequest(tasks.toJS());
     };
+
     _handleSearch = (event) => {
         const searchText = event.target.value;
 
         this.setState({ search: searchText });
         this.props.taskActions.filterTasks(searchText);
     };
+
     render () {
         const todoList = this.props.tasks.map((task) => {
             if (task.get('hidden')) {
@@ -73,6 +81,7 @@ export default class Scheduler extends Component {
                 key = { task.get('id') }
                 { ...task.toJS() }
                 { ...this.props.taskActions }
+                { ...this.props.sagaTaskActions }
             />);
 
         });
@@ -81,6 +90,7 @@ export default class Scheduler extends Component {
 
         return (
             <section className = { Styles.scheduler }>
+                <Spinner spin = { this.props.isRequesting } />
                 <main>
                     <header>
                         <h1>Планировщик задач</h1>

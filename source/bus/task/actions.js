@@ -9,31 +9,16 @@ export const taskActions = Object.freeze({
         type:    types.REMOVE_TASK,
         payload: taskId,
     }),
-    editTask: ({ taskId, message }) => ({
+    editTask: (task) => ({
         type:    types.EDIT_TASK,
-        payload: { taskId, message },
+        payload: { task },
     }),
-    setFavorite: (taskId) => ({
-        type:    types.SET_FAVORITE,
-        payload: taskId,
-    }),
-    unsetFavorite: (taskId) => ({
-        type:    types.UNSET_FAVORITE,
-        payload: taskId,
-    }),
-    setCompleted: (taskId) => ({
-        type:    types.SET_COMPLETED,
-        payload: taskId,
-    }),
-    setUncompleted: (taskId) => ({
-        type:    types.SET_UNCOMPLETED,
-        payload: taskId,
+    editAllTasks: (tasks) => ({
+        type:    types.EDIT_ALL_TASKS,
+        payload: tasks,
     }),
     sortTasks: () => ({
         type: types.SORT_TASKS,
-    }),
-    setAllTasksCompleted: () => ({
-        type: types.SET_ALL_TASKS_COMPLETED,
     }),
     filterTasks: (mask) => ({
         type:    types.FILTER_TASKS,

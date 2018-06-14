@@ -1,5 +1,6 @@
 import { createLogger } from 'redux-logger';
 import { customThunk } from './customThunk';
+import createSagaMiddleware from 'redux-saga';
 
 const logger = createLogger({
     duration:  true,
@@ -13,11 +14,11 @@ const logger = createLogger({
     },
 });
 const dev = process.env.NODE_ENV === 'development';
-
-const middleware = [customThunk];
+const sagaMiddleware = createSagaMiddleware();
+const middleware = [sagaMiddleware, customThunk];
 
 if (dev) {
     middleware.push(logger);
 }
 
-export { middleware, dev };
+export { sagaMiddleware, middleware, dev };

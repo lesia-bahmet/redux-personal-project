@@ -13,30 +13,57 @@ import Star from 'theme/assets/Star';
 
 export default class Task extends PureComponent {
 
-    state = {
-        isEdited: false,
-        message:  this.props.message,
-    };
+    constructor (props) {
+        super(props);
+
+        this.state = {
+            isEdited: false,
+            message:  this.props.message,
+        };
+
+        this.messageInput = React.createRef();
+        this._focusMessageInput = this._focusMessageInput.bind(this);
+    }
 
     componentDidMount () {
         //TODO: refactor
-        //TODO: focus when editing
-        // document.addEventListener("keydown", this._handleKeyPress, false);
+        document.addEventListener("keydown", this._handleKeyPress, false);
+    }
+
+    componentDidUpdate () {
+        if (this.state.isEdited) {
+            this._focusMessageInput();
+        }
+        this.props.sortTasks();
+    }
+
+    _focusMessageInput () {
+        this.messageInput.current.focus();
     }
 
     _removeTask = () => {
-        this.props.removeTask(this.props.id);
+        this.props.removeTaskRequest(this.props.id);
     };
 
-    _editTask = () => {
-        this.props.editTask({
-            taskId:  this.props.id,
-            message: this.state.message,
-        });
+    _confirmEdit = () => {
+        if (!this.state.isEdited) {
+            return;
+        }
+
+        const data = this._collectData();
+
+        this.props.editTasksRequest([data]);
         this.setState({ isEdited: false });
     };
 
-    _escapeEditState = () => {
+    _collectData = () => ({
+        id:        this.props.id,
+        message:   this.state.message,
+        completed: this.props.completed,
+        favorite:  this.props.favorite,
+    });
+
+    _skipEdit = () => {
         this.setState({
             isEdited: false,
             message:  this.props.message,
@@ -48,23 +75,30 @@ export default class Task extends PureComponent {
     };
 
     _setFavorite = () => {
-        if (this.props.favorite) {
-            this.props.unsetFavorite(this.props.id);
-        } else {
-            this.props.setFavorite(this.props.id);
-        }
+        // if (this.props.favorite) {
+        //     this.props.unsetFavorite(this.props.id);
+        // } else {
+        //     this.props.setFavorite(this.props.id);
+        // }
 
-        this.props.sortTasks();
+        const data = this._collectData();
+
+        data.favorite = !this.props.favorite;
+
+        this.props.editTasksRequest([data]);
     };
 
     _setCompleted = () => {
-        if (this.props.completed) {
-            this.props.setUncompleted(this.props.id);
-        } else {
-            this.props.setCompleted(this.props.id);
-        }
+        // if (this.props.completed) {
+        //     this.props.setUncompleted(this.props.id);
+        // } else {
+        //     this.props.setCompleted(this.props.id);
+        // }
+        const data = this._collectData();
 
-        this.props.sortTasks();
+        data.completed = !this.props.completed;
+
+        this.props.editTasksRequest([data]);
     };
 
     _handleChange = (event) => {
@@ -73,11 +107,10 @@ export default class Task extends PureComponent {
 
     _handleKeyPress = (event) => {
         if (event.key === 'Enter') {
-            this._editTask();
+            this._confirmEdit();
         }
         if (event.keyCode === 27) {
-            console.log('esc');
-            this._escapeEditState();
+            this._skipEdit();
         }
     };
 
@@ -102,10 +135,12 @@ export default class Task extends PureComponent {
                     <input
                         autoFocus
                         disabled = { !this.state.isEdited }
-                        type = 'text'
-                        value = { this.state.message }
+                        onBlur = { this._skipEdit }
                         onChange = { this._handleChange }
                         onKeyPress = { this._handleKeyPress }
+                        ref = { this.messageInput }
+                        type = 'text'
+                        value = { this.state.message }
                         // value = { message }
                     />
                 </div>
